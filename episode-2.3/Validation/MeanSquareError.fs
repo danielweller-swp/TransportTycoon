@@ -4,8 +4,8 @@ open TransportTycoon.Model.Types
 open Types
 
 let modelErrorForRow (model: Model) (row: TestDataRow) =
-    let road, actualSpeed = row
-    let predictedSpeed = model.Item road
+    let road, time, actualSpeed = row
+    let predictedSpeed = model road time
     let error = (actualSpeed - predictedSpeed) * (actualSpeed - predictedSpeed)
     
     //System.Console.WriteLine($"{road}\t{predictedSpeed}\t{actualSpeed}\t{error}")

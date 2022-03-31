@@ -24,6 +24,8 @@
     <Compile Include="Model\Types.fs" />
     <Compile Include="Model\ParseCsv.fs" />
     <Compile Include="Model\AverageSpeedModel.fs" />
+    <Compile Include="Model\LinearRegressionModel.fs" />
+    <Compile Include="Model\PolynomialRegressionModel.fs" />
     <Compile Include="Validation\Types.fs" />
     <Compile Include="Validation\MeanSquareError.fs" />
     <Compile Include="Validation\ParseCsv.fs" />
@@ -32,6 +34,8 @@
 
   <ItemGroup>
     <PackageReference Include="FSharp.Data" Version="4.2.8" />
+    <PackageReference Include="MathNet.Numerics.FSharp" Version="4.15.0" />
+    <PackageReference Include="NodaTime" Version="3.0.10" />
   </ItemGroup>
 
 </Project>
