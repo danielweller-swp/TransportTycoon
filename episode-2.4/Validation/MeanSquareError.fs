@@ -38,7 +38,7 @@ let modelBasedSimulationErrorForRow (model: Model) (context: ShortestPathContext
         | NoRoute -> failwith $"No route found from {start} to {dest}"
         | Route route -> extractArrival route
     
-    let error = Period.Between(actualTimeOfArrival, expectedTimeOfArrival).Minutes
+    let error = Period.Between(actualTimeOfArrival, expectedTimeOfArrival, PeriodUnits.Minutes).Minutes
     let squared = error * error
     
     System.Console.WriteLine($"{row.Road}\t{expectedTimeOfArrival}\t{actualTimeOfArrival}\t{squared}")
@@ -52,4 +52,4 @@ let modelBasedSimulationError (model: Model) (context: ShortestPathContext) (tes
         |> Seq.map (modelBasedSimulationErrorForRow model context)
         |> Seq.sum
         
-    errorSum / (testData |> Seq.length |> int64)
+    (errorSum |> float) / (testData |> Seq.length |> float)

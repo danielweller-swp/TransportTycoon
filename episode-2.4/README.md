@@ -9,3 +9,10 @@
 # Parameters
 
 `<MODEL-TYPE>` can be one of `average, linear, polynomial`.
+
+# Examples
+
+```
+dotnet run train_model linear s02e04_train.csv
+dotnet run run_simulation linear model.json s02e04_test.csv
+```
