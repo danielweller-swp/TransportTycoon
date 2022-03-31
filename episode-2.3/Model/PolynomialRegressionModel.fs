@@ -7,10 +7,7 @@ open TransportTycoon.Model.Types
 let secondsFromMidnight (time: LocalDateTime) =
     (time.Hour * 60 + time.Minute) * 60 + time.Second
 
-let evaluatePolynomial (factors: float seq) (x: float) =
-    factors
-    |> Seq.mapi( fun i p -> p * (x ** (float i)))
-    |> Seq.sum
+let timeToModelInput = secondsFromMidnight >> float
 
 // Assumption: The time of day plays a polynomial role
 // for the speed.
@@ -20,7 +17,7 @@ let getModel (polynomialOrder: int) (trainingData: Map<Road, TrainingData seq>) 
         |> Map.map (fun road data ->
             let timesOfDay =
                 data
-                |> Seq.map (fun (time, _) -> time |> secondsFromMidnight |> float)
+                |> Seq.map (fun (time, _) -> time |> timeToModelInput)
                 |> Array.ofSeq
                 
             let speeds =
@@ -28,10 +25,8 @@ let getModel (polynomialOrder: int) (trainingData: Map<Road, TrainingData seq>) 
                 |> Seq.map (fun (_, speed) -> speed |> float)
                 |> Array.ofSeq
                 
-            let factors = Fit.Polynomial(timesOfDay, speeds, polynomialOrder)
-            fun time ->
-                let x = time |> secondsFromMidnight |> float
-                evaluatePolynomial factors x |> decimal
+            let f = Fit.PolynomialFunc(timesOfDay, speeds, polynomialOrder).Invoke
+            timeToModelInput >> f >> decimal
             )
     fun road time ->
         let modelForRoad = model.Item road
