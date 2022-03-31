@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>episode_2._1</RootNamespace>
+    <WarnOn>3390;$(WarnOn)</WarnOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="s02e02_map.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="s02e03_train.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="s02e03_test.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Types.fs" />
+    <Compile Include="Simulation\Types.fs" />
+    <Compile Include="Simulation\Route.fs" />
+    <Compile Include="Simulation\ParseCsv.fs" />
+    <Compile Include="Model\Types.fs" />
+    <Compile Include="Model\ParseCsv.fs" />
+    <Compile Include="Model\AverageSpeedModel.fs" />
+    <Compile Include="Model\LinearRegressionModel.fs" />
+    <Compile Include="Model\PolynomialRegressionModel.fs" />
+    <Compile Include="Validation\Types.fs" />
+    <Compile Include="Validation\MeanSquareError.fs" />
+    <Compile Include="Validation\ParseCsv.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Data" Version="4.2.8" />
+    <PackageReference Include="MathNet.Numerics.FSharp" Version="4.15.0" />
+    <PackageReference Include="NodaTime" Version="3.0.10" />
+  </ItemGroup>
+
+</Project>
