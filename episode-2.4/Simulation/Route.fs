@@ -5,11 +5,13 @@ open TransportTycoon.Simulation.Types
 
 module Route =
 
+  open NodaTime
+
   type TimeLength = float
   
   type Duration =
     | InfiniteDuration
-    | FiniteDuration of TimeLength
+    | ArrivedAt of LocalDateTime
   
   type MilestoneStats = {
     Distance: Distance
@@ -31,25 +33,27 @@ module Route =
     | NoRoute
     | Route of Milestone list
   
-  let rec shortestPathRec (current: Location) (destination: Location) (roads: Road list) (unvisited: Location list) (shortestKnownPaths: Map<Location, Milestone>) =
+  let rec shortestPathRec (current: Location) (destination: Location) (roads: Road list) (unvisited: Location list) (shortestKnownPaths: Map<Location, Milestone>) (model: TransportTycoon.Model.Types.Model) =
     let currentMilestone = shortestKnownPaths.[current]
     let currentStats = currentMilestone.MilestoneStats
     
-    let timeToCurrent, lengthToCurrent = 
+    let arrivedAtCurrent, lengthToCurrent = 
       match currentStats.Duration, currentStats.Distance with
-      | FiniteDuration x, FiniteDistance y -> x, y
+      | ArrivedAt x, FiniteDistance y -> x, y
       | _ -> failwith "Duration and Distance to current should be finite"
 
     let neighbors =
       roads
-      |> List.filter( fun (from, _, _, _) -> from = current )
+      |> List.filter( fun (from, _, _) -> from = current )
       
     let unvisitedNeighborLengthsAndDurations =
       neighbors
-      |> List.filter (fun (_, dest, _, _) -> unvisited |> List.contains dest)
-      |> List.map (fun (_, dest, length, speed) ->
+      |> List.filter (fun (_, dest, _) -> unvisited |> List.contains dest)
+      |> List.map (fun (from, dest, length) ->
+        let speed = model (from, dest) arrivedAtCurrent
         let newLength = lengthToCurrent + length
-        let newTime = timeToCurrent + (float length / float speed)
+        let travelTimeSeconds = (float length / float speed) * 60.0 * 60.0 |> int64
+        let newTime = arrivedAtCurrent.PlusSeconds(travelTimeSeconds)
         (dest, (newLength, newTime)))
       |> Map.ofList
 
@@ -66,13 +70,13 @@ module Route =
             Previous = currentMilestone |> Some
             MilestoneStats = {
               Distance = FiniteDistance length
-              Duration = FiniteDuration timeLength
+              Duration = ArrivedAt timeLength
             }
           }
         
         match neighborMilestone.MilestoneStats.Duration, lengthAndDurationToNeighborOption with
         | InfiniteDuration, Some (lengthToNeighbor, timeLengthToNeighbor) -> newMilestone lengthToNeighbor timeLengthToNeighbor
-        | FiniteDuration currentTimeLength, Some (lengthToNeighbor, timeLengthToNeighbor) when timeLengthToNeighbor < currentTimeLength -> newMilestone lengthToNeighbor timeLengthToNeighbor
+        | ArrivedAt currentTimeLength, Some (lengthToNeighbor, timeLengthToNeighbor) when timeLengthToNeighbor < currentTimeLength -> newMilestone lengthToNeighbor timeLengthToNeighbor
         | _, _ -> neighborMilestone)
 
     if current = destination then
@@ -86,7 +90,13 @@ module Route =
           match (distance1, distance2) with
           | InfiniteDuration, _ -> 1
           | _, InfiniteDuration -> -1
-          | FiniteDuration x, FiniteDuration y -> int (x - y)
+          | ArrivedAt x, ArrivedAt y ->
+            if x = y then
+              0
+            else if x < y then
+              -1
+            else
+              1
       
       let next =
         newUnvisited
@@ -96,16 +106,16 @@ module Route =
 
       match next with
       | _, InfiniteDuration -> NoRoute
-      | location, _ -> shortestPathRec location destination roads newUnvisited newShortestKnownPaths
+      | location, _ -> shortestPathRec location destination roads newUnvisited newShortestKnownPaths model
 
-  let shortestPath context start destination =
+  let shortestPath context model start startTime destination =
     let unvisited = context.Locations
     let shortestKnownPaths =
       unvisited
       |> List.map( fun location ->
         let distance, duration =
           if location = start then
-            FiniteDistance 0, FiniteDuration 0.0
+            FiniteDistance 0, ArrivedAt startTime
           else
             InfiniteDistance, InfiniteDuration
         let milestone = {
@@ -118,4 +128,4 @@ module Route =
         }
         (location, milestone))
       |> Map.ofList
-    shortestPathRec start destination context.Roads unvisited shortestKnownPaths
+    shortestPathRec start destination context.Roads unvisited shortestKnownPaths model

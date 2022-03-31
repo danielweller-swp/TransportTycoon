@@ -17,23 +17,31 @@
     <Content Include="s02e03_test.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="s02e04_test.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="s02e04_train.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Types.fs" />
-    <Compile Include="Simulation\Types.fs" />
-    <Compile Include="Simulation\Route.fs" />
-    <Compile Include="Simulation\ParseCsv.fs" />
     <Compile Include="Model\Types.fs" />
     <Compile Include="Model\ParseCsv.fs" />
     <Compile Include="Model\AverageSpeedModel.fs" />
     <Compile Include="Model\LinearRegressionModel.fs" />
     <Compile Include="Model\PolynomialRegressionModel.fs" />
+    <Compile Include="Simulation\Types.fs" />
+    <Compile Include="Simulation\Route.fs" />
+    <Compile Include="Simulation\ParseCsv.fs" />
     <Compile Include="Validation\Types.fs" />
     <Compile Include="Validation\MeanSquareError.fs" />
     <Compile Include="Validation\ParseCsv.fs" />
+    <Compile Include="Json.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FSharp.Data" Version="4.2.8" />
+    <PackageReference Include="FSharp.SystemTextJson" Version="0.17.4" />
     <PackageReference Include="MathNet.Numerics.FSharp" Version="4.15.0" />
     <PackageReference Include="NodaTime" Version="3.0.10" />
   </ItemGroup>

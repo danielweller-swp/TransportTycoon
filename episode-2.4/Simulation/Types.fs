@@ -3,7 +3,7 @@ namespace TransportTycoon.Simulation
 module Types =
   open TransportTycoon.Types
 
-  type Road = Location * Location * Length * Speed
+  type Road = Location * Location * Length
 
   type Timestamp = int
 

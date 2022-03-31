@@ -7,3 +7,5 @@ type Road = Location * Location
 type Model = Road -> LocalDateTime -> Speed
 
 type TrainingData = LocalDateTime * Speed
+type TrainingDataSet = Map<Road, TrainingData seq>
+

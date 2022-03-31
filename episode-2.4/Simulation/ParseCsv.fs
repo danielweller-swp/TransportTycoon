@@ -16,8 +16,8 @@ let getDistanceData (file: string) =
         data.Rows
         |> Seq.collect (fun row ->
             [
-             (City row.A, City row.B, row.Km, decimal row.Speed)
-             (City row.B, City row.A, row.Km, decimal row.Speed)
+             (City row.A, City row.B, row.Km)
+             (City row.B, City row.A, row.Km)
             ] )
         
     {

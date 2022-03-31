@@ -1,57 +1,77 @@
 module TransportTycoon.Main
 
+open System.IO
+open TransportTycoon.Json
+open TransportTycoon.Model
+open TransportTycoon.Model.Types
+
+[<Literal>]
+let AverageModelCommand = "average"
+
+[<Literal>]
+let LinearModelCommand = "linear"
+
+[<Literal>]
+let PolynomialModelCommand = "polynomial"
+
+let PolynomialOrder = 3
+
 [<Literal>]
 let TrainCommand = "train_model"
 
 [<Literal>]
 let SimulationCommand = "run_simulation"
 
+[<Literal>]
+let ModelDataOutputFile = "model.json"
+
+let save file str = File.WriteAllText(file, str)
+
+let load file = File.ReadAllText(file)
+
+let trainAndSave trainingData file = function
+    | AverageModelCommand ->
+        AverageSpeedModel.trainModelData trainingData |> serialize |> save file
+    | LinearModelCommand ->
+        LinearRegressionModel.trainModelData trainingData |> serialize |> save file
+    | PolynomialModelCommand ->
+        PolynomialRegressionModel.trainModelData PolynomialOrder trainingData |> serialize |> save file
+    | x -> failwith $"Unknown model type {x}"
+
+let modelFromFile file = function
+    | AverageModelCommand ->
+        load file |> deserialize |> AverageSpeedModel.modelFromData
+    | LinearModelCommand ->
+        load file |> deserialize |> LinearRegressionModel.modelFromData
+    | PolynomialModelCommand ->
+        load file |> deserialize |> PolynomialRegressionModel.modelFromData
+    | x -> failwith $"Unknown model type {x}"
+    
+
 [<EntryPoint>]
 let main argv =
-    (*
-    match argv.[0] with
+    let command = argv.[0]
+    let modelType = argv.[1]
+    
+    match command with
     | TrainCommand ->
-        System.Console.WriteLine("training")
+        let modelDataFile = argv.[2]
+        let trainingData = ParseCsv.getTrainingData modelDataFile
+        trainAndSave trainingData ModelDataOutputFile modelType
+        System.Console.WriteLine($"Saved to {ModelDataOutputFile}")
         0
     | SimulationCommand ->
-        System.Console.WriteLine("simulation")
+        let modelFile = argv.[2]
+        let model = modelFromFile modelFile modelType
+        
+        let testDataFile = argv.[3]
+        let testData = Validation.ParseCsv.getTestData testDataFile
+        
+        let context = Simulation.ParseCsv.getDistanceData "s02e02_map.csv"
+        
+        let mse = Validation.MeanSquareError.modelBasedSimulationError model context testData
+        System.Console.WriteLine($"Simulation MSE is {mse}")
         0
     | x ->
         System.Console.WriteLine($"Unknown command {x}")
         1
-    *)
-    let trainingData = TransportTycoon.Model.ParseCsv.getTrainingData "s02e03_train.csv"
-    let testData = TransportTycoon.Validation.ParseCsv.getTestData "s02e03_test.csv"
-
-    let averageSpeedModel = TransportTycoon.Model.AverageSpeedModel.trainModel trainingData
-    let linearModel = TransportTycoon.Model.LinearRegressionModel.trainModel trainingData
-
-    let polynomialOrders = [2; 3; 4; 5]
-    
-    let polynomialModels =
-        polynomialOrders
-        |> Seq.map (fun order ->
-            let model = TransportTycoon.Model.PolynomialRegressionModel.trainModel order trainingData
-            $"Polynomial Regression (order {order})", model)
-
-    let models =
-        [ "Average Speed", averageSpeedModel
-          "Linear Regression", linearModel ]
-        |> Seq.append polynomialModels
-
-    let evaluatedModels =
-        models
-        |> Seq.map( fun (name, model) ->
-            (name, model, TransportTycoon.Validation.MeanSquareError.modelError model testData))
-
-    evaluatedModels
-    |> Seq.iter(fun (name, model, error) ->
-        System.Console.WriteLine($"{name} MSE: {error}"))
-
-    let bestModel, _, _ =
-        evaluatedModels
-        |> Seq.minBy (fun (name, model, error) -> error)
-
-    System.Console.WriteLine($"Best Model: {bestModel}")
-
-    0
